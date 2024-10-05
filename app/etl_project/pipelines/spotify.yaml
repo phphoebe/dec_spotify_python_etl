@@ -1,6 +1,7 @@
 name: spotify_etl 
 config: 
-  log_folder_path: "./etl_project/logs"
+  log_folder_path: "etl_project/logs"
+  sql_folder_path: "etl_project/sql"
   playlist_id: '31FWVQBp3WQydWLNhO0ACi'  # Example playlist ID
 schedule:
   run_seconds: 5 #1800

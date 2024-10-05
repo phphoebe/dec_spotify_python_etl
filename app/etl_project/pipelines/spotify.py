@@ -3,7 +3,7 @@ import os
 from etl_project.assets.spotify import extract_playlist_data, extract_artist_data, transform, load_data
 from etl_project.connectors.spotify import SpotifyAccessTokenClient, SpotifyAPIClient
 from etl_project.connectors.postgresql import PostgreSqlClient
-from sqlalchemy import Table, Column, Integer, String, MetaData
+from sqlalchemy import Table, Column, Integer, String, MetaData, inspect
 from etl_project.assets.pipeline_logging import PipelineLogging
 from etl_project.assets.metadata_logging import MetaDataLogging, MetaDataLoggingStatus
 import yaml
@@ -119,6 +119,28 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
         table_schemas=table_schemas,
         load_method="upsert",  # You can change this to "insert" or "overwrite" as needed
     )
+
+    # Create views from SQL files if they don't exist
+    pipeline_logging.logger.info("Inspecting database views")
+    engine = postgresql_client.engine  # Get the engine from the PostgreSqlClient
+    inspector = inspect(engine)
+    # Retrieve the path from config
+    sql_folder_path = config.get("sql_folder_path")
+
+    for sql_file in os.listdir(sql_folder_path):
+        # Extract view name from file name (excluding extension)
+        view_name = sql_file.split(".")[0]
+        if view_name not in inspector.get_view_names():
+            pipeline_logging.logger.info(
+                f"View {view_name} does not exist - Creating view")
+            with open(os.path.join(sql_folder_path, sql_file), 'r') as f:
+                sql_query = f.read()
+                engine.execute(f"create view {view_name} as {sql_query};")
+                pipeline_logging.logger.info(
+                    f"Successfully created view {view_name}")
+        else:
+            pipeline_logging.logger.info(
+                f"View {view_name} already exists in the database")
 
     # Log the success of the pipeline
     pipeline_logging.logger.info("Pipeline run successful")
