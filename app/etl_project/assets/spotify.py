@@ -80,8 +80,8 @@ def transform(
         'track.name': 'track_name',
         'track.popularity': 'track_popularity',
         'track.duration_ms': 'track_duration_ms',
+        'added_at': 'track_added_at',
         'track.album.id': 'album_id',
-        'added_at': 'added_at',
         'artist_ids': 'artist_id'  # Rename artist_ids for clarity
     })
 

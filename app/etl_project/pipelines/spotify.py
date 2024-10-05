@@ -77,12 +77,12 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
             Column("track_name", String),
             Column("track_popularity", Integer),
             Column("track_duration_ms", Integer),
+            Column("track_added_at", String),
             Column("album_id", String),
             Column("artist_id", String),
             Column("playlist_id", String),
             Column("playlist_name", String),
             Column("snapshot_id", String),
-            Column("added_at", String),
         ),
         "albums": Table(
             "albums",
