@@ -4,5 +4,7 @@ config:
   sql_folder_path: "etl_project/sql"
   playlist_id: '31FWVQBp3WQydWLNhO0ACi'  # Example playlist ID
 schedule:
-  run_seconds: 5 #1800
-  poll_seconds: 2 #60
+  run_seconds: 1800 # 5
+  poll_seconds: 60 # 2
+
+# Replace run_seconds with 86400, for full day
