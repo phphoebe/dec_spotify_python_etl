@@ -14,7 +14,8 @@ import time
 
 def pipeline(config: dict, pipeline_logging: PipelineLogging):
     pipeline_logging.logger.info("Starting pipeline run")
-    # set up environment variables
+
+    # Set up environment variables
     pipeline_logging.logger.info("Getting pipeline environment variables")
     CLIENT_ID = os.environ.get("CLIENT_ID")
     CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
@@ -27,31 +28,35 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
     # Initialize SpotifyAccessTokenClient and SpotifyAPIClient
     pipeline_logging.logger.info("Creating Spotify Access Token Client")
     spotify_access_token_client = SpotifyAccessTokenClient(
-        client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
+        client_id=CLIENT_ID, client_secret=CLIENT_SECRET
+    )
 
     pipeline_logging.logger.info("Creating Spotify API Client")
     spotify_api_client = SpotifyAPIClient(
-        access_token_client=spotify_access_token_client)
+        access_token_client=spotify_access_token_client
+    )
 
     # Extract playlist data and track items
-    pipeline_logging.logger.info(
-        "Extracting playlist data from Spotify API")
+    pipeline_logging.logger.info("Extracting playlist data from Spotify API")
     playlist_id = config.get("playlist_id")
-    playlist_data, df_tracks_items = extract_playlist_data(
-        spotify_api_client=spotify_api_client, playlist_id=playlist_id)
+    playlist_metadata, df_tracks_items = extract_playlist_data(
+        spotify_api_client=spotify_api_client, playlist_id=playlist_id
+    )
 
     # Extract artist data
     pipeline_logging.logger.info("Extracting artist data from Spotify API")
     artist_data = extract_artist_data(
-        spotify_api_client=spotify_api_client, df_tracks_items=df_tracks_items)
+        spotify_api_client=spotify_api_client, df_tracks_items=df_tracks_items
+    )
 
     # Transform data
     pipeline_logging.logger.info("Transforming dataframes")
     df_tracks, df_albums, df_artists = transform(
-        df_tracks_items, playlist_data, artist_data)
+        df_tracks_items, playlist_metadata, artist_data
+    )
 
-    # Load data to postgres
-    pipeline_logging.logger.info("Loading data to postgres")
+    # Load data to PostgreSQL
+    pipeline_logging.logger.info("Loading data to PostgreSQL")
     postgresql_client = PostgreSqlClient(
         server_name=SERVER_NAME,
         database_name=DATABASE_NAME,
@@ -59,8 +64,10 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
         password=DB_PASSWORD,
         port=PORT,
     )
+
     # Define metadata object for the schema
     metadata = MetaData()
+
     # Define the table schemas
     table_schemas = {
         "tracks": Table(
@@ -94,6 +101,7 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
             Column("artist_popularity", Integer),
         ),
     }
+
     # Create tables if they don't exist
     postgresql_client.create_tables(table_schemas=table_schemas)
 
@@ -103,6 +111,7 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
         "albums": df_albums,
         "artists": df_artists
     }
+
     # Load data into the database
     load_data(
         data_dict=data_dict,
@@ -155,7 +164,7 @@ if __name__ == "__main__":
     LOGGING_PASSWORD = os.environ.get("LOGGING_PASSWORD")
     LOGGING_PORT = os.environ.get("LOGGING_PORT")
 
-    # get config variables
+    # Get config variables
     yaml_file_path = __file__.replace(".py", ".yaml")
     if Path(yaml_file_path).exists():
         with open(yaml_file_path) as yaml_file:
@@ -174,7 +183,7 @@ if __name__ == "__main__":
         port=LOGGING_PORT,
     )
 
-    # set schedule
+    # Set schedule
     schedule.every(pipeline_config.get("schedule").get("run_seconds")).seconds.do(
         run_pipeline,
         pipeline_name=PIPELINE_NAME,

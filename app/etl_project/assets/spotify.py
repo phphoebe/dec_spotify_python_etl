@@ -6,7 +6,7 @@ from sqlalchemy import MetaData
 
 def extract_playlist_data(spotify_api_client: SpotifyAPIClient, playlist_id: str) -> tuple[dict, pd.DataFrame]:
     """
-    Extract playlist data and track items from Spotify API.
+    Extract playlist metadata and track items from Spotify API.
 
     Args:
         spotify_api_client (SpotifyAPIClient): An instance of SpotifyAPIClient to interact with Spotify API.
@@ -14,16 +14,17 @@ def extract_playlist_data(spotify_api_client: SpotifyAPIClient, playlist_id: str
 
     Returns:
         tuple: 
-            dict: Full playlist data.
+            dict: Playlist metadata.
             pd.DataFrame: Normalized DataFrame for track items.
     """
-    # Fetch playlist data using the correct method name
-    playlist_data = spotify_api_client.get_playlist_data(playlist_id)
+    # Fetch playlist metadata and the list of all tracks (with pagination handled)
+    playlist_metadata, tracks_list = spotify_api_client.get_playlist_data(
+        playlist_id)
 
     # Normalize the track items into a DataFrame
-    df_tracks_items = pd.json_normalize(playlist_data['tracks']['items'])
+    df_tracks_items = pd.json_normalize(tracks_list)
 
-    return playlist_data, df_tracks_items
+    return playlist_metadata, df_tracks_items
 
 
 def extract_artist_data(spotify_api_client: SpotifyAPIClient, df_tracks_items: pd.DataFrame) -> list[dict]:
@@ -56,7 +57,7 @@ def extract_artist_data(spotify_api_client: SpotifyAPIClient, df_tracks_items: p
 
 def transform(
     df_tracks_items: pd.DataFrame,
-    playlist_data: dict,
+    playlist_metadata: dict,
     artist_data: list[dict]
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
@@ -64,7 +65,7 @@ def transform(
 
     Args:
         df_tracks_items (pd.DataFrame): DataFrame of track items.
-        playlist_data (dict): Full playlist data.
+        playlist_metadata (dict): Playlist-level metadata like snapshot_id and playlist_name.
         artist_data (list[dict]): List of artist data dictionaries.
 
     Returns:
@@ -85,9 +86,9 @@ def transform(
     })
 
     # Add playlist-level fields to tracks
-    df_tracks['playlist_id'] = playlist_data['id']
-    df_tracks['playlist_name'] = playlist_data['name']
-    df_tracks['snapshot_id'] = playlist_data['snapshot_id']
+    df_tracks['playlist_id'] = playlist_metadata['id']
+    df_tracks['playlist_name'] = playlist_metadata['name']
+    df_tracks['snapshot_id'] = playlist_metadata['snapshot_id']
 
     # Step 2: Process albums data (removing duplicates)
     df_albums = df_tracks_items[[
@@ -143,7 +144,7 @@ def load_data(
             table = table_schemas[table_name]
             method_mapping[load_method](
                 data=df.to_dict(orient="records"),
-                table=table,  # Pass the table object directly, not table_name
+                table=table,  # Pass the table object directly
                 metadata=MetaData()  # Assuming the metadata is re-created as needed
             )
         else:
