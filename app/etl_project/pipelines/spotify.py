@@ -13,6 +13,14 @@ import time
 
 
 def pipeline(config: dict, pipeline_logging: PipelineLogging):
+    """
+    The main ETL pipeline for extracting playlist and artist data from the Spotify API,
+    transforming it, and loading it into a PostgreSQL database.
+
+    Args:
+        config (dict): Pipeline configuration data, including API credentials and playlist ID.
+        pipeline_logging (PipelineLogging): Logger for tracking pipeline execution steps.
+    """
     pipeline_logging.logger.info("Starting pipeline run")
 
     # Set up environment variables
@@ -25,7 +33,7 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
     DATABASE_NAME = os.environ.get("DATABASE_NAME")
     PORT = os.environ.get("PORT")
 
-    # Initialize SpotifyAccessTokenClient and SpotifyAPIClient
+    # Initialize Spotify API clients
     pipeline_logging.logger.info("Creating Spotify Access Token Client")
     spotify_access_token_client = SpotifyAccessTokenClient(
         client_id=CLIENT_ID, client_secret=CLIENT_SECRET
@@ -36,26 +44,26 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
         access_token_client=spotify_access_token_client
     )
 
-    # Extract playlist data and track items
+    # Extract playlist metadata and track items
     pipeline_logging.logger.info("Extracting playlist data from Spotify API")
     playlist_id = config.get("playlist_id")
     playlist_metadata, df_tracks_items = extract_playlist_data(
         spotify_api_client=spotify_api_client, playlist_id=playlist_id
     )
 
-    # Extract artist data
+    # Extract artist data based on track items
     pipeline_logging.logger.info("Extracting artist data from Spotify API")
     artist_data = extract_artist_data(
         spotify_api_client=spotify_api_client, df_tracks_items=df_tracks_items
     )
 
-    # Transform data
+    # Transform the extracted data
     pipeline_logging.logger.info("Transforming dataframes")
     df_tracks, df_albums, df_artists = transform(
         df_tracks_items, playlist_metadata, artist_data
     )
 
-    # Load data to PostgreSQL
+    # Load data into PostgreSQL database
     pipeline_logging.logger.info("Loading data to PostgreSQL")
     postgresql_client = PostgreSqlClient(
         server_name=SERVER_NAME,
@@ -65,10 +73,10 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
         port=PORT,
     )
 
-    # Define metadata object for the schema
+    # Define metadata object and table schemas
     metadata = MetaData()
 
-    # Define the table schemas
+    # Define the database table structures
     table_schemas = {
         "tracks": Table(
             "tracks",
@@ -102,47 +110,48 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
         ),
     }
 
-    # Create tables if they don't exist
+    # Create the necessary database tables if they do not already exist
     postgresql_client.create_tables(table_schemas=table_schemas)
 
-    # Prepare data dictionary for loading
+    # Prepare data dictionary for loading into the database
     data_dict = {
         "tracks": df_tracks,
         "albums": df_albums,
         "artists": df_artists
     }
 
-    # Load data into the database
+    # Load data into PostgreSQL using the specified method (e.g., upsert)
     load_data(
         data_dict=data_dict,
         postgresql_client=postgresql_client,
         table_schemas=table_schemas,
-        load_method="upsert",  # You can change this to "insert" or "overwrite" as needed
+        load_method="upsert",  # Can be 'insert', 'upsert', or 'overwrite'
     )
 
-    # Create views from SQL files if they don't exist
+    # Create database views from SQL files if they don't already exist
     pipeline_logging.logger.info("Inspecting database views")
-    engine = postgresql_client.engine  # Get the engine from the PostgreSqlClient
+    engine = postgresql_client.engine  # Get engine from the PostgreSqlClient
     inspector = inspect(engine)
-    # Retrieve the path from config
+
+    # Get the SQL folder path from the pipeline configuration
     sql_folder_path = config.get("sql_folder_path")
 
     for sql_file in os.listdir(sql_folder_path):
-        # Extract view name from file name (excluding extension)
+        # Extract view name from the SQL file name
         view_name = sql_file.split(".")[0]
         if view_name not in inspector.get_view_names():
             pipeline_logging.logger.info(
                 f"View {view_name} does not exist - Creating view")
             with open(os.path.join(sql_folder_path, sql_file), 'r') as f:
                 sql_query = f.read()
-                engine.execute(f"create view {view_name} as {sql_query};")
+                engine.execute(f"CREATE VIEW {view_name} AS {sql_query};")
                 pipeline_logging.logger.info(
                     f"Successfully created view {view_name}")
         else:
             pipeline_logging.logger.info(
                 f"View {view_name} already exists in the database")
 
-    # Log the success of the pipeline
+    # Log the successful completion of the pipeline
     pipeline_logging.logger.info("Pipeline run successful")
 
 
@@ -151,6 +160,14 @@ def run_pipeline(
     postgresql_logging_client: PostgreSqlClient,
     pipeline_config: dict,
 ):
+    """
+    Run the ETL pipeline and log its progress, handling success and failure.
+
+    Args:
+        pipeline_name (str): The name of the pipeline.
+        postgresql_logging_client (PostgreSqlClient): Client for logging the pipeline run status.
+        pipeline_config (dict): Configuration settings for the pipeline.
+    """
     pipeline_logging = PipelineLogging(
         pipeline_name=pipeline_config.get("name"),
         log_folder_path=pipeline_config.get("config").get("log_folder_path"),
@@ -161,32 +178,33 @@ def run_pipeline(
         config=pipeline_config.get("config"),
     )
     try:
-        metadata_logger.log()  # log start
-        pipeline(
-            config=pipeline_config.get("config"), pipeline_logging=pipeline_logging
-        )
+        metadata_logger.log()  # Log the start of the pipeline
+        pipeline(config=pipeline_config.get("config"),
+                 pipeline_logging=pipeline_logging)
         metadata_logger.log(
             status=MetaDataLoggingStatus.RUN_SUCCESS, logs=pipeline_logging.get_logs()
-        )  # log end
+        )  # Log the successful completion of the pipeline
         pipeline_logging.logger.handlers.clear()
     except BaseException as e:
         pipeline_logging.logger.error(
             f"Pipeline run failed. See detailed logs: {e}")
         metadata_logger.log(
             status=MetaDataLoggingStatus.RUN_FAILURE, logs=pipeline_logging.get_logs()
-        )  # log error
+        )  # Log the failure of the pipeline
         pipeline_logging.logger.handlers.clear()
 
 
 if __name__ == "__main__":
     load_dotenv()
+
+    # Get environment variables for logging database connection
     LOGGING_SERVER_NAME = os.environ.get("LOGGING_SERVER_NAME")
     LOGGING_DATABASE_NAME = os.environ.get("LOGGING_DATABASE_NAME")
     LOGGING_USERNAME = os.environ.get("LOGGING_USERNAME")
     LOGGING_PASSWORD = os.environ.get("LOGGING_PASSWORD")
     LOGGING_PORT = os.environ.get("LOGGING_PORT")
 
-    # Get config variables
+    # Load pipeline configuration from YAML file
     yaml_file_path = __file__.replace(".py", ".yaml")
     if Path(yaml_file_path).exists():
         with open(yaml_file_path) as yaml_file:
@@ -194,9 +212,9 @@ if __name__ == "__main__":
             PIPELINE_NAME = pipeline_config.get("name")
     else:
         raise Exception(
-            f"Missing {yaml_file_path} file! Please create the yaml file with at least a `name` key for the pipeline name."
-        )
+            f"Missing {yaml_file_path} file! Please create the yaml file with at least a 'name' key for the pipeline name.")
 
+    # Initialize PostgreSQL client for logging
     postgresql_logging_client = PostgreSqlClient(
         server_name=LOGGING_SERVER_NAME,
         database_name=LOGGING_DATABASE_NAME,
@@ -205,7 +223,7 @@ if __name__ == "__main__":
         port=LOGGING_PORT,
     )
 
-    # Set schedule
+    # Schedule the pipeline to run at specified intervals
     schedule.every(pipeline_config.get("schedule").get("run_seconds")).seconds.do(
         run_pipeline,
         pipeline_name=PIPELINE_NAME,
@@ -213,6 +231,7 @@ if __name__ == "__main__":
         pipeline_config=pipeline_config,
     )
 
+    # Continuously run scheduled tasks
     while True:
         schedule.run_pending()
         time.sleep(pipeline_config.get("schedule").get("poll_seconds"))
