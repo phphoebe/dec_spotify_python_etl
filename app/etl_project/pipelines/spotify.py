@@ -144,7 +144,7 @@ def pipeline(config: dict, pipeline_logging: PipelineLogging):
                 f"View {view_name} does not exist - Creating view")
             with open(os.path.join(sql_folder_path, sql_file), 'r') as f:
                 sql_query = f.read()
-                engine.execute(f"CREATE VIEW {view_name} AS {sql_query};")
+                engine.execute(f"create view {view_name} as {sql_query};")
                 pipeline_logging.logger.info(
                     f"Successfully created view {view_name}")
         else:
