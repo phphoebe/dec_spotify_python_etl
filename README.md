@@ -8,6 +8,8 @@ The pipeline enables efficient data extraction and transformation of Spotify pla
 
 The chosen playlist for this pipeline is the Lofi Girl's Favorite Playlist, a popular collection among individuals who enjoy relaxing, lo-fi music while working or studying. This playlist provides an interesting dataset for analysis due to its relevance to productivity and study culture.
 
+> _As part of the data source selection process, we were provided with several options, such as Public APIs, Kaggle datasets, and sample Postgres databases. I chose to work with the Spotify API to develop my skills in API extraction and Python scripting, as I am already familiar with SQL and relational databases. The Spotify API offers easy-to-navigate documentation and real-time data, making it a suitable choice for practicing API extraction._
+
 ## Business Objective 
 
 The primary objective of this pipeline is to provide structured and detailed insights into Spotify playlist and artist data. These insights can be leveraged for the following purposes:
@@ -137,7 +139,7 @@ The relationships are:
 
 ## Limitations and Lessons Learned
 
-As part of the data source selection process, we were provided with multiple options (e.g., Public APIs, Kaggle Open Source Datasets, Sample Postgres databases). I chose to work with a public API because I'm already familiar with SQL and relational databases, and I wanted to practice API extraction and enhance my Python skills for learning purposes. The Spotify API is easy to navigate and offers an excellent opportunity to work with real-time data and provides a structured way to practice Python scriptying for API extraction. 
+### Limitations
 
 During the development of the Spotify ETL pipeline, several key limitations and lessons were identified:
 
@@ -157,10 +159,9 @@ During the development of the Spotify ETL pipeline, several key limitations and 
 
     - While the pipeline runs as a single process, more advanced data pipelines often rely on Directed Acyclic Graphs (DAGs) for task orchestration. Tools like `dbt` and `Airflow`/`Dagster` can be introduced later to manage complex workflows where certain tasks depend on the output of others.
 
-#### Lessons Learned 
+### Lessons Learned 
 
 **Pagination Handling:** Spotify’s API paginates large datasets, limiting responses to 100 items per request. Understanding and implementing pagination was crucial for retrieving the entire playlist, as my initial pipeline only fetched 100 out of 197 tracks. By checking the `next` field in the API response and continuing to fetch additional pages, I was able to collect all data points.
-
 
 ## Installation and Running Instructions
 
