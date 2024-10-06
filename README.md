@@ -118,11 +118,15 @@ The ETL pipeline is containerized and runs on AWS infrastructure:
 
 ## ELT/ETL Techniques Applied
 
-- **Extract:** Data is fetched from the Spotify API (tracks, albums, and artists) using the API client in the `spotify.py` module.
-- **Transform:** The data is cleaned and transformed into structured formats (DataFrames) using **pandas**. This includes normalizing the nested JSON structures returned by the API and preparing it for relational storage.
-- **Load:** The transformed data is loaded into **PostgreSQL** using **SQLAlchemy**. The pipeline supports three loading methods: `insert`, `upsert`, and `overwrite`.
+**ELT** is used to first load the raw data into the database and then apply transformations using SQL for creating useful insights. Before loading, some light transformations are applied using **pandas** to prepare the data for relational storage.
 
-## ERD (Entity Relationship Diagram)
+- **Extract:** Data is fetched from the Spotify API (tracks, albums, and artists) using the API client in the `spotify.py` module.
+  
+- **Load:** The raw or lightly transformed data is loaded into **PostgreSQL** using **SQLAlchemy**. The pipeline supports `insert`, `upsert`, and `overwrite` load methods. 
+
+- **Transform:** After loading, SQL transformations are performed within PostgreSQL to create useful insights and views. This includes querying and aggregating the data to answer business questions.
+
+### ERD (Entity Relationship Diagram)
 
 The ERD for this project outlines the relationships between the `tracks`, `albums`, and `artists` tables:
 
@@ -136,6 +140,7 @@ The relationships are:
 - One-to-many relationship between artists and tracks.
 
 <img src='./images/0-ERD.png'>
+
 
 ## Limitations and Lessons Learned
 
@@ -186,7 +191,7 @@ During the development of the Spotify ETL pipeline, several key limitations and 
 
     Use AWS CLI commands to build and push the Docker image to ECR.
 
-    _The commands usually can be found by clicking on the `View push commands` button on AWS ECR_ ([Documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html))
+    _The commands usually can be found by clicking on the `View push commands` button on AWS ECR once a private repository gets created_ (Documentation: [Pushing a Docker image to an Amazon ECR private repository](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html))
 
 3. **Create and Configure the ECS Cluster**
 
@@ -205,6 +210,7 @@ During the development of the Spotify ETL pipeline, several key limitations and 
 ## AWS and pgAdmin Screenshots
 
 
+
 ## Note 
 
-As part of the data source selection process, we were provided with several options, such as Public APIs, Kaggle datasets, and sample Postgres databases. I chose to work with the Spotify API to develop my skills in API extraction and Python scripting, as I am already familiar with SQL and relational databases. The Spotify API offers easy-to-navigate documentation and real-time data, making it a suitable choice for practicing API extraction.
+As part of the data source selection process, we were provided with several options, such as Public APIs, Kaggle datasets, and sample Postgres databases. I chose to work with the Spotify API to develop my skills in API extraction and Python scripting, as I am already familiar with SQL and relational databases. The Spotify API offers easy-to-navigate documentation ([**Spotify**forDevelopers](https://developer.spotify.com/documentation/web-api)) and real-time data, making it a suitable choice for practicing API extraction.
