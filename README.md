@@ -8,8 +8,6 @@ The pipeline enables efficient data extraction and transformation of Spotify pla
 
 The chosen playlist for this pipeline is the Lofi Girl's Favorite Playlist, a popular collection among individuals who enjoy relaxing, lo-fi music while working or studying. This playlist provides an interesting dataset for analysis due to its relevance to productivity and study culture.
 
-> _As part of the data source selection process, we were provided with several options, such as Public APIs, Kaggle datasets, and sample Postgres databases. I chose to work with the Spotify API to develop my skills in API extraction and Python scripting, as I am already familiar with SQL and relational databases. The Spotify API offers easy-to-navigate documentation and real-time data, making it a suitable choice for practicing API extraction._
-
 ## Business Objective 
 
 The primary objective of this pipeline is to provide structured and detailed insights into Spotify playlist and artist data. These insights can be leveraged for the following purposes:
@@ -137,6 +135,8 @@ The relationships are:
 - One-to-many relationship between albums and tracks.
 - One-to-many relationship between artists and tracks.
 
+<img src='./images/0-ERD.png'>
+
 ## Limitations and Lessons Learned
 
 ### Limitations
@@ -203,3 +203,8 @@ During the development of the Spotify ETL pipeline, several key limitations and 
     - Use a tool like **pgAdmin** or any SQL client to connect to the RDS instance and verify that the tracks, albums, and artists tables have been populated with data
 
 ## AWS and pgAdmin Screenshots
+
+
+## Note 
+
+As part of the data source selection process, we were provided with several options, such as Public APIs, Kaggle datasets, and sample Postgres databases. I chose to work with the Spotify API to develop my skills in API extraction and Python scripting, as I am already familiar with SQL and relational databases. The Spotify API offers easy-to-navigate documentation and real-time data, making it a suitable choice for practicing API extraction.
