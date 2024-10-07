@@ -2,7 +2,7 @@ name: spotify_etl
 config: 
   log_folder_path: "etl_project/logs"
   sql_folder_path: "etl_project/sql"
-  playlist_id: '31FWVQBp3WQydWLNhO0ACi'  # Example playlist ID
+  playlist_id: '31FWVQBp3WQydWLNhO0ACi'  # Lofi Girl's Favorite Playlist
 schedule:
   run_seconds: 5
   poll_seconds: 2
