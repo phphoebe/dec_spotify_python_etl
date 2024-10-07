@@ -164,21 +164,28 @@ The relationships are:
 
     Use AWS CLI commands to build and push the Docker image to ECR.
 
-    _The commands usually can be found by clicking on the `View push commands` button on AWS ECR once a private repository gets created_ (Documentation: [Pushing a Docker image to an Amazon ECR private repository](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html))
+    _The commands can be found by clicking on the `View push commands` button in the AWS ECR console after creating the private repository._ (Documentation: [Pushing a Docker image to an Amazon ECR private repository](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html))
 
 3. **Create and Configure the ECS Cluster**
 
-    - Create a new ECS cluster via the AWS console (e.g., `spotify_etl_cluster`)
-    - Define a new Task Definition (e.g., `spotify_etl`) that uses the Docker image (e.g., `spotify_etl`) you pushed to ECR
-    - Ensure the task definition uses the appropriate IAM Role (`SpotifyETLRole`) that has permissions to access the `.env` file stored in S3
+    - Create a new ECS cluster via the AWS console (e.g., `spotify_etl_cluster`).
+    - Define a new Task Definition (e.g., `spotify_etl`) that uses the Docker image (e.g., `spotify_etl`) you pushed to ECR.
+    - Ensure the task definition uses the appropriate IAM Role (`SpotifyETLRole`) that has permissions to access the `.env` file stored in S3.
 
 4. **Run the Task in ECS** 
 
-    - Start the task within the ECS cluster and monitor the logs to ensure that the ETL process is running correctly and data is being loaded into RDS.
+    - Start the task within the ECS cluster.
+    - Monitor the logs in **AWS CloudWatch** to confirm that the ETL process is running successfully, and look for any errors or confirmation messages indicating that the data has been loaded into the RDS instance.
 
 5. **Verify Data Load in PostgreSQL**
 
-    - Use a tool like **pgAdmin** or any SQL client to connect to the RDS instance and verify that the `tracks`, `albums`, and `artists` tables have been populated with data.
+    - Open **pgAdmin4** or any other SQL client and connect to the RDS instance.
+    - In the **`spotify` database**, verify that the following have been created:
+        - **Tables:** `tracks`, `albums`, `artists`
+        - **Views:** Check that the necessary views (e.g., to answer business questions) are present.
+    - In the **`logging` database**, confirm that the ETL run logs and metadata have been correctly logged.
+    - Additionally, cross-check the row counts between the Spotify API and your loaded data to ensure all data has been successfully ingested.
+
 
 ## Limitations and Lessons Learned
 
