@@ -155,7 +155,7 @@ The relationships are:
 
 1. **Clone the Repository**
 
-    ```
+    ```bash
     git clone <this-repository-url>
     cd dec_spotify_python_etl/app
     ```
@@ -232,31 +232,31 @@ During the development of the Spotify ETL pipeline, several key limitations and 
 
 ### AWS S3
 
-* `.env` file in S3 which is used in the task definition that runs the pipeline in ECS
+* `.env` file in **S3** which is used in the task definition that runs the pipeline in ECS
 
     <img src='./images/12-S3-creds.png'>
 
 ### AWS IAM
 
-* IAM Role used to allow ECS tasks to access environment variables from S3
+* **IAM Role** used to allow ECS tasks to access environment variables from S3
 
     <img src='./images/11-IAM-SpotifyETLRole.png'>
 
 ### AWS RDS
 
-* RDS Database created
+* **RDS Database** created for storing track, album, and artist data, along with metadata for logging
 
     <img src='./images/07-spotify-RDS.png'>
 
 ### AWS CloudWatch
 
-* Logs showing successful pipeline execution
+* **Logs** showing successful pipeline execution and monitoring
 
     <img src='./images/03-CloudWatch-logs.png'>
 
 ### Postgres `logging` DB
 
-* Logs queried from pgAdmin4
+* **Logs** queried from pgAdmin4 to verify logging activity
 
     <img src='./images/04-logging-DB-1.png'>
 
@@ -264,24 +264,34 @@ During the development of the Spotify ETL pipeline, several key limitations and 
 
 ### Postgres `spotify` data DB
 
-* Tables and Views successfully written into the database
+* **Tables and Views** successfully written into the database, confirming the pipeline execution
 
     <img src='./images/06-views-in-pgAdmin4.png'>
 
 ### Run Pipeline Locally
 
-Just a note - this pipeline can also be run locally without Docker and AWS. You just need to set up a local host PostgreSQL server.
+This pipeline can also be executed locally without using Docker or AWS services. To do this, you need to have a local PostgreSQL server configured.
 
-Navigate into the `app` directory and run the following:
+1. Navigate into the `app` directory:
 
-```bash
-python -m etl_project.pipelines.spotify
-```
+    ```bash
+    cd app
+    ```
 
-Refer to the logs in the terminal, as shown in the screenshot below:
+2. Run the pipeline: 
+
+    ```bash
+    python -m etl_project.pipelines.spotify
+    ```
+
+Refer to the logs in the terminal, as shown below:
 
 <img src='./images/02-run-log-localhost.png'>
 
 ### Data Source Selection Note 
 
-As part of the data source selection process, we were provided with several options, such as Public APIs, Kaggle datasets, and sample Postgres databases. I chose to work with the Spotify API to develop my skills in API extraction and Python scripting, as I am already familiar with SQL and relational databases. The Spotify API offers easy-to-navigate documentation ([**Spotify**forDevelopers](https://developer.spotify.com/documentation/web-api)) and real-time data, making it a suitable choice for practicing API extraction.
+As part of the data source selection process, we were given several options, such as Public APIs, Kaggle datasets, and sample Postgres databases. I chose to work with the Spotify API because:
+
+1. **Familiarity with SQL:** I already have experience with SQL and relational databases, so I wanted to practice more on API extraction.
+2. **Learning Opportunity:** The Spotify API provides an excellent real-time dataset, allowing me to enhance my Python scripting skills for API-based data extraction.
+3. **Ease of Use:** Spotify’s API documentation is well-organized, making it easy to navigate and extract data efficiently. You can find more information in the [Spotify for Developers Documentation](https://developer.spotify.com/documentation/web-api)
