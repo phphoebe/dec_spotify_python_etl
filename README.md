@@ -109,11 +109,13 @@ The data is fetched directly from the **Spotify Web API** for the following enti
 
 The ETL pipeline is containerized and runs on AWS infrastructure (refer to screenshots in the _"Appendix - AWS and pgAdmin Screenshots"_ section below):
 
-1. **Docker:** Used to containerize the Python application. The image is pushed to **Amazon ECR (Elastic Container Registry)**.
-2. **Amazon ECS (Elastic Container Service):** Orchestrates and manages Docker containers in the ECS cluster.
-3. **AWS S3:** Stores the `.env` file containing sensitive configurations such as RDS endpoint credentials and Spotify API secrets.
-4. **AWS RDS (Relational Database Service):** Hosts the PostgreSQL database to store track, album, and artist data, SQL transformed views, as well as metadata for logging purposes.
-5. **IAM Role:** Used by ECS to access the `.env` file from S3. The role allows ECS to assume the necessary permissions for accessing sensitive data securely.
+- **Docker:** Used to containerize the Python application. The image is pushed to **Amazon ECR (Elastic Container Registry)**.
+- **Amazon ECS (Elastic Container Service):** Orchestrates and manages Docker containers in the ECS cluster.
+- **AWS S3:** Stores the `.env` file containing sensitive configurations such as RDS endpoint credentials and Spotify API secrets.
+- **IAM Role:** Used by ECS to access the `.env` file from S3. The role allows ECS to assume the necessary permissions for accessing sensitive data securely.
+- **AWS RDS (Relational Database Service):** Hosts the PostgreSQL database to store track, album, and artist data, SQL transformed views, as well as metadata for logging purposes.
+
+<img src='./images/15-Diagram-AWS-Docker.png'>
 
 ## ELT and ETL Techniques Applied
 
