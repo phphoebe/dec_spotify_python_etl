@@ -34,32 +34,31 @@ The following SQL queries are designed to answer key business questions and prov
 
     _Question:_ Who are the top 5 most popular artists, and what is their contribution to the playlist?
 
-    >_Understanding the top-performing artists allows strategic decisions to feature these artists more prominently in playlists, marketing efforts, or collaborations._
+    > _Understanding the top-performing artists allows strategic decisions to feature these artists more prominently in playlists, marketing efforts, or collaborations._
 
 2. **Most Popular Tracks with Duration**
 
-    _Question:_ What are the most popular tracks along with their durations (in minutues)? 
+    _Question:_ What are the most popular tracks along with their durations (in minutes)?
 
-    >_UKnowing the most popular tracks and their lengths helps tailor playlist creation to user preferences and optimize track order for increased engagement._
+    > _Knowing the most popular tracks and their lengths helps tailor playlist creation to user preferences and optimize track order for increased engagement._
 
 3. **Track Popularity Trend by Release Year and Month**
 
     _Question:_ How has track popularity trended over time by year and month of release?
 
-    >_Analyzing popularity trends by release year and month provides insights into how audience preferences evolve, guiding decisions on content releases and promotions._
+    > _Analyzing popularity trends by release year and month provides insights into how audience preferences evolve, guiding decisions on content releases and promotions._
 
 4. **Album-Track Popularity Comparison**
 
     _Question:_ How does the popularity of an album compare to its tracks?
 
-    >_This comparison reveals whether specific tracks are outperforming or underperforming their album, providing deeper insights for featuring or marketing specific songs._
+    > _This comparison reveals whether specific tracks are outperforming or underperforming their album, providing deeper insights for featuring or marketing specific songs._
 
 5. **Genre, Track, and Artist Details**
 
     _Question:_ What are the genre, track, and artist details for all the tracks in the playlist?
 
-    >_This provides a complete view of the playlist's content, helping analyze the diversity and reach of various genres, tracks, and artists_
-
+    > _This provides a complete view of the playlist's content, helping analyze the diversity and reach of various genres, tracks, and artists._
 
 ## Project Structure
 
@@ -102,9 +101,9 @@ etl_project_tests/
 
 The data is fetched directly from the **Spotify Web API** for the following entities: 
 
-- **Tracks:** Information about individual tracks in the playlist (e.g., popularity, duration, album association)
-- **Albums:** Details about the albums the tracks belong to (e.g., release date, total tracks)
-- **Artists:** Details about the artists (e.g., genres, popularity)
+- **Tracks:** Information about individual tracks in the playlist (e.g., popularity, duration, album association).
+- **Albums:** Details about the albums the tracks belong to (e.g., release date, total tracks).
+- **Artists:** Details about the artists (e.g., genres, popularity).
 
 ## Solution Architecture  
 
@@ -113,7 +112,7 @@ The ETL pipeline is containerized and runs on AWS infrastructure (refer to scree
 1. **Docker:** Used to containerize the Python application. The image is pushed to **Amazon ECR (Elastic Container Registry)**: `spotify_etl`.
 2. **Amazon ECS (Elastic Container Service):** Orchestrates and manages Docker containers in the `spotify_etl_cluster`.
 3. **AWS S3:** Stores the `.env` file containing sensitive configurations such as RDS endpoint credentials and Spotify API secrets.
-4. **AWS RDS (Relational Database Service):** Hosts the PostgreSQL database to store track, album, and artist data, SQL transformed Views, as well as metadata for logging purposes.
+4. **AWS RDS (Relational Database Service):** Hosts the PostgreSQL database to store track, album, and artist data, SQL transformed views, as well as metadata for logging purposes.
 5. **IAM Role (`SpotifyETLRole`):** Used by ECS to access the `.env` file from S3. The role allows ECS to assume the necessary permissions for accessing sensitive data securely.
 
 ## ELT and ETL Techniques Applied
@@ -121,11 +120,8 @@ The ETL pipeline is containerized and runs on AWS infrastructure (refer to scree
 This project uses a **combination of ETL and ELT** approaches. Light transformations are applied using **pandas** before loading data into the database (ETL), while more complex transformations and aggregations are performed using SQL within the database (ELT).
 
 - **Extract:** Data is fetched from the Spotify API (tracks, albums, and artists) using the API client in the `spotify.py` module.
-
 - **Transform (ETL):** Before loading, the data is lightly transformed using **pandas** to clean and normalize nested JSON structures, preparing it for relational storage.
-
 - **Load (ELT):** The transformed data is then loaded into **PostgreSQL** using **SQLAlchemy**. The pipeline supports `insert`, `upsert`, and `overwrite` load methods.
-
 - **Transform (ELT):** After the data is loaded, SQL-based transformations and aggregations are performed within PostgreSQL to generate insights, such as creating views to answer key business questions.
 
 <img src='./images/01-Diagram-ETL.png'>
@@ -178,12 +174,11 @@ The relationships are:
 
 4. **Run the Task in ECS** 
 
-    - Start the task within the ECS cluster and monitor the logs to ensure that the ETL process is running correctly and data is being loaded into RDS
+    - Start the task within the ECS cluster and monitor the logs to ensure that the ETL process is running correctly and data is being loaded into RDS.
 
 5. **Verify Data Load in PostgreSQL**
 
-    - Use a tool like **pgAdmin** or any SQL client to connect to the RDS instance and verify that the tracks, albums, and artists tables have been populated with data
-
+    - Use a tool like **pgAdmin** or any SQL client to connect to the RDS instance and verify that the `tracks`, `albums`, and `artists` tables have been populated with data.
 
 ## Limitations and Lessons Learned
 
@@ -191,11 +186,11 @@ The relationships are:
 
 During the development of the Spotify ETL pipeline, several key limitations and lessons were identified:
 
-1. **Incremental Extract** 
+1. **Incremental Extract**
 
     - Spotify’s API does not provide an `updated_at` timestamp or similar metadata for incremental extracts. Therefore, each run of the pipeline currently pulls all the data. Implementing a more sophisticated incremental extraction based on other attributes or metrics (which I'm still learning) could be a future improvement.
 
-2. **Snapshot Optimization** 
+2. **Snapshot Optimization**
 
     - Although I ingested the playlist-level `snapshot_id` field, the ETL process currently does not utilize the `snapshot_id` to determine if the playlist has been updated. Ideally, by checking the `snapshot_id`, we could skip running the ETL if the playlist data hasn’t changed, optimizing the pipeline performance.
 
@@ -203,14 +198,13 @@ During the development of the Spotify ETL pipeline, several key limitations and 
 
     - The dataset in this project is relatively small, so chunking techniques for handling larger datasets were not implemented. If the data volume increases, chunking can be introduced to process large datasets in memory efficiently.
 
-4. **DAG and Ochestration**
+4. **DAG and Orchestration**
 
     - While the pipeline runs as a single process, more advanced data pipelines often rely on Directed Acyclic Graphs (DAGs) for task orchestration. Tools like `dbt` and `Airflow`/`Dagster` can be introduced later to manage complex workflows where certain tasks depend on the output of others.
 
-### Lessons Learned 
+### Lessons Learned
 
 **Pagination Handling:** Spotify’s API paginates large datasets, limiting responses to 100 items per request. Understanding and implementing pagination was crucial for retrieving the entire playlist, as my initial pipeline only fetched 100 out of 197 tracks. By checking the `next` field in the API response and continuing to fetch additional pages, I was able to collect all data points.
-
 
 ## Appendix
 
@@ -226,9 +220,9 @@ During the development of the Spotify ETL pipeline, several key limitations and 
 
     <img src='./images/09-ECR-image.png'>
 
-#### AWS ECS 
+#### AWS ECS
 
-* ECS Cluster 
+* ECS Cluster
 
     <img src='./images/14-ECS-Cluster.png'>
 
@@ -244,42 +238,47 @@ During the development of the Spotify ETL pipeline, several key limitations and 
 
 ### AWS IAM
 
-* IAM Role used to allow ECS tasks to access environment variables from S3 
+* IAM Role used to allow ECS tasks to access environment variables from S3
 
     <img src='./images/11-IAM-SpotifyETLRole.png'>
 
 ### AWS RDS
 
-* RDS Database created 
+* RDS Database created
 
     <img src='./images/07-spotify-RDS.png'>
 
-### AWS CloudWatch 
+### AWS CloudWatch
 
-* Logs showing successful pipeline execution 
+* Logs showing successful pipeline execution
 
     <img src='./images/03-CloudWatch-logs.png'>
 
-### Postgres `logging` DB 
+### Postgres `logging` DB
 
-* Logs queried from pgAdmin4 
+* Logs queried from pgAdmin4
 
     <img src='./images/04-logging-DB-1.png'>
 
     <img src='./images/05-logging-DB-2.png'>
 
-### Postgres `spotify` data DB 
+### Postgres `spotify` data DB
 
-* Tables and Views successfully written into the database 
+* Tables and Views successfully written into the database
 
     <img src='./images/06-views-in-pgAdmin4.png'>
 
+### Run Pipeline Locally
 
-### Run Pipeline Locally 
+Just a note - this pipeline can also be run locally without Docker and AWS. You just need to set up a local host PostgreSQL server.
 
-Just a note - this pipeline can also be run locally without Docker and AWS, just need to set up a local host Postgre server. 
+Navigate into the `app` directory and run the following:
 
-Navigate into the `app` directory and run `python -m etl_project.pipelines.spotify` - refer to the logs in terminal shown in below screenshot: 
+```bash
+python -m etl_project.pipelines.spotify
+```
+
+Refer to the logs in the terminal, as shown in the screenshot below:
 
 <img src='./images/02-run-log-localhost.png'>
 
